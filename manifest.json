@@ -12,6 +12,12 @@
       "js": ["qrcode.min.js", "content.js"],
       "css": ["styles.css"],
       "run_at": "document_end"
+    },
+    {
+      "matches": ["https://drive.google.com/drivesharing/driveshare*"],
+      "js": ["qrcode.min.js", "content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_end"
     }
   ],
   "web_accessible_resources": [
@@ -19,10 +25,5 @@
       "resources": ["qrcode.min.js"],
       "matches": ["https://drive.google.com/*"]
     }
-  ],
-  "icons": {
-    "16": "icon16.png",
-    "48": "icon48.png",
-    "128": "icon128.png"
-  }
+  ]
 }
