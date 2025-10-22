@@ -1,2 +1,1 @@
-# QR_Code_Extension
-A Chrome extension that adds QR code generation directly into Google Drive's interface.
+MonkeyCode transforms coding practice into a typing game, helping developers become faster and more fluent at writing code while reinforcing algorithmic thinking patterns.
