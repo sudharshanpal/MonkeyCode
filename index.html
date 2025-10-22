@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeType - Learn to Type and Think Like a Programmer</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/vs2015.min.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1><b>monkeycode</b></h1>
+                    <span class="tagline">Type & Think Like a Programmer</span>
+                </div>
+                <nav class="nav">
+                    <button class="nav-btn" onclick="window.location.href='stats.html'">Stats</button>
+                    <button class="nav-btn" id="settings-btn">Settings</button>
+                    <div class="user-info">
+                        <span class="user-name">Welcome, Coder!</span>
+                    </div>
+                </nav>
+            </div>
+            
+            <!-- Settings Bar (Monkeytype top position) -->
+            <section class="settings-bar" id="settings-bar">
+                <div class="settings-unified">
+                    <button class="setting-btn active" data-mode="problems">problems</button>
+                    <button class="setting-btn" data-mode="micro">micro drills</button>
+                    
+                    <div class="setting-divider"></div>
+                    
+                    <button class="setting-btn topic-btn active" data-topic="array">array</button>
+                    <button class="setting-btn topic-btn" data-topic="string">string</button>
+                    <button class="setting-btn topic-btn" data-topic="linked-list">linked list</button>
+                    <button class="setting-btn topic-btn" data-topic="binary-tree">binary tree</button>
+                    <button class="setting-btn topic-btn" data-topic="dynamic-programming">dynamic programming</button>
+                    <button class="setting-btn topic-btn" data-topic="graph">graph</button>
+                    <button class="setting-btn topic-btn" data-topic="backtracking">backtracking</button>
+                    <button class="setting-btn topic-btn" data-topic="stack">stack</button>
+                </div>
+            </section>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Typing Interface (Monkeytype style) -->
+            <section class="typing-interface" id="typing-interface">
+                <!-- Problem Title and Timer -->
+                <div class="problem-info" id="problem-info">
+                    <h3 class="problem-title" id="problem-title">Two Sum - Array</h3>
+                    <div class="timer" id="timer">0:00</div>
+                </div>
+
+                <!-- Code Display Area (clean, minimal) -->
+                <div class="code-section">
+                    <div class="code-display-container">
+                        <pre class="code-display-text" id="code-display-text"></pre>
+                        <textarea
+                            class="code-input"
+                            id="code-input"
+                            spellcheck="false"
+                            autocomplete="off"
+                            autocorrect="off"
+                            autocapitalize="off"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics (Hidden during typing, like Monkeytype) -->
+                <div class="metrics-display hidden" id="metrics-display">
+                    <div class="metric-group">
+                        <div class="metric-item">
+                            <div class="metric-label">wpm</div>
+                            <div class="metric-value" id="wpm-display">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">acc</div>
+                            <div class="metric-value" id="accuracy-display">100%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Control Buttons (minimal) -->
+                <div class="controls" id="controls">
+                    <button class="control-btn" id="reset-btn" title="Reset (Tab + Enter)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                        </svg>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Results Modal (Monkeytype style popup) -->
+            <div class="results-modal hidden" id="results-modal">
+                <div class="results-overlay" id="results-overlay"></div>
+                <div class="results-popup">
+                    <div class="results-content">
+                        <div class="results-main">
+                            <div class="result-primary">
+                                <div class="result-wpm">
+                                    <span class="result-label">wpm</span>
+                                    <span class="result-value" id="final-wpm">45</span>
+                                </div>
+                                <div class="result-accuracy">
+                                    <span class="result-label">acc</span>
+                                    <span class="result-value" id="final-accuracy">94%</span>
+                                </div>
+                            </div>
+                            <div class="result-secondary">
+                                <div class="result-item">
+                                    <span class="result-label">time</span>
+                                    <span class="result-value" id="final-time">2:34</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">errors</span>
+                                    <span class="result-value" id="final-errors">3</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="results-actions">
+                            <button class="action-btn retry-btn" id="retry-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                                </svg>
+                                retry same
+                            </button>
+                            <button class="action-btn next-btn" id="next-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                                </svg>
+                                new problem
+                            </button>
+                        </div>
+                        
+                        <div class="results-hint">
+                            <div class="hint-row">Tab + Enter = new problem</div>
+                            <div class="hint-row">R = retry • Enter = new problem</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay hidden" id="loading-overlay">
+            <div class="loading-spinner"></div>
+            <p>Loading next challenge...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="js/problems.js"></script>
+    <script src="js/typing-engine.js"></script>
+    <script src="js/performance-tracker.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

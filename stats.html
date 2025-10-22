@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stats - CodeType</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/stats.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>🧩 CodeType</h1>
+                    <span class="tagline">Stats & Analytics</span>
+                </div>
+                <nav class="nav">
+                    <button class="nav-btn" onclick="window.location.href='index.html'">← Back to Typing</button>
+                    <button class="nav-btn" id="export-btn">Export Data</button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Stats Content -->
+        <main class="stats-content">
+            <!-- Summary Cards -->
+            <section class="stats-summary">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-tests">0</div>
+                    <div class="stat-label">tests completed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="best-wpm">0</div>
+                    <div class="stat-label">wpm (best)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-wpm">0</div>
+                    <div class="stat-label">wpm (average)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="best-accuracy">0%</div>
+                    <div class="stat-label">accuracy (best)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-accuracy">0%</div>
+                    <div class="stat-label">accuracy (average)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="time-typing">0h</div>
+                    <div class="stat-label">time typing</div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-section">
+                <!-- WPM Over Time Chart -->
+                <div class="chart-container">
+                    <h3 class="chart-title">WPM Over Time</h3>
+                    <canvas id="wpm-chart"></canvas>
+                </div>
+
+                <!-- Accuracy Over Time Chart -->
+                <div class="chart-container">
+                    <h3 class="chart-title">Accuracy Over Time</h3>
+                    <canvas id="accuracy-chart"></canvas>
+                </div>
+
+                <!-- Speed Distribution Chart -->
+                <div class="chart-container">
+                    <h3 class="chart-title">Speed Distribution</h3>
+                    <canvas id="speed-distribution-chart"></canvas>
+                </div>
+
+                <!-- Language Distribution Chart -->
+                <div class="chart-container">
+                    <h3 class="chart-title">Language Practice</h3>
+                    <canvas id="language-chart"></canvas>
+                </div>
+            </section>
+
+            <!-- Recent Tests -->
+            <section class="recent-tests">
+                <h3 class="section-title">Recent Tests</h3>
+                <div class="tests-table">
+                    <div class="table-header">
+                        <div class="header-cell">wpm</div>
+                        <div class="header-cell">acc</div>
+                        <div class="header-cell">mode</div>
+                        <div class="header-cell">topic</div>
+                        <div class="header-cell">date</div>
+                    </div>
+                    <div class="table-body" id="recent-tests-body">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Achievements Section -->
+            <section class="achievements-section">
+                <h3 class="section-title">Achievements</h3>
+                <div class="achievements-grid" id="achievements-grid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Personal Bests -->
+            <section class="personal-bests">
+                <h3 class="section-title">Personal Bests</h3>
+                <div class="bests-grid">
+                    <div class="best-card">
+                        <div class="best-value" id="best-wpm-detailed">0</div>
+                        <div class="best-label">highest wpm</div>
+                        <div class="best-details" id="best-wpm-details">--</div>
+                    </div>
+                    <div class="best-card">
+                        <div class="best-value" id="best-accuracy-detailed">0%</div>
+                        <div class="best-label">highest accuracy</div>
+                        <div class="best-details" id="best-accuracy-details">--</div>
+                    </div>
+                    <div class="best-card">
+                        <div class="best-value" id="longest-streak">0</div>
+                        <div class="best-label">longest streak</div>
+                        <div class="best-details">days</div>
+                    </div>
+                    <div class="best-card">
+                        <div class="best-value" id="total-problems">0</div>
+                        <div class="best-label">problems solved</div>
+                        <div class="best-details">total</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/performance-tracker.js"></script>
+    <script src="js/stats.js"></script>
+</body>
+</html>
