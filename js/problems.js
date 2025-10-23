@@ -37,6 +37,58 @@ class ProblemsDatabase {
     
     return max_profit`,
                         patterns: ['array', 'greedy']
+                    },
+                    {
+                        id: 'contains-duplicate',
+                        title: 'Contains Duplicate',
+                        topic: 'array',
+                        description: `Given an integer array nums, return true if any value appears at least twice in the array, and return false if every element is distinct.`,
+                        solution: `def containsDuplicate(nums):
+    seen = set()
+    for num in nums:
+        if num in seen:
+            return True
+        seen.add(num)
+    return False`,
+                        patterns: ['array', 'hash_set']
+                    },
+                    {
+                        id: 'product-except-self',
+                        title: 'Product of Array Except Self',
+                        topic: 'array',
+                        description: `Given an integer array nums, return an array answer such that answer[i] is equal to the product of all the elements of nums except nums[i].`,
+                        solution: `def productExceptSelf(nums):
+    n = len(nums)
+    result = [1] * n
+    
+    # Left pass
+    for i in range(1, n):
+        result[i] = result[i-1] * nums[i-1]
+    
+    # Right pass
+    right = 1
+    for i in range(n-1, -1, -1):
+        result[i] *= right
+        right *= nums[i]
+    
+    return result`,
+                        patterns: ['array', 'prefix_sum']
+                    },
+                    {
+                        id: 'maximum-subarray',
+                        title: 'Maximum Subarray',
+                        topic: 'array',
+                        description: `Given an integer array nums, find the contiguous subarray with the largest sum, and return its sum.`,
+                        solution: `def maxSubArray(nums):
+    max_sum = nums[0]
+    current_sum = nums[0]
+    
+    for i in range(1, len(nums)):
+        current_sum = max(nums[i], current_sum + nums[i])
+        max_sum = max(max_sum, current_sum)
+    
+    return max_sum`,
+                        patterns: ['array', 'dynamic_programming', 'kadane_algorithm']
                     }
                 ],
                 'string': [
@@ -72,6 +124,71 @@ class ProblemsDatabase {
     cleaned = ''.join(char.lower() for char in s if char.isalnum())
     return cleaned == cleaned[::-1]`,
                         patterns: ['two_pointer', 'string']
+                    },
+                    {
+                        id: 'longest-substring-without-repeating',
+                        title: 'Longest Substring Without Repeating Characters',
+                        topic: 'string',
+                        description: `Given a string s, find the length of the longest substring without repeating characters.`,
+                        solution: `def lengthOfLongestSubstring(s):
+    char_set = set()
+    left = 0
+    max_length = 0
+    
+    for right in range(len(s)):
+        while s[right] in char_set:
+            char_set.remove(s[left])
+            left += 1
+        char_set.add(s[right])
+        max_length = max(max_length, right - left + 1)
+    
+    return max_length`,
+                        patterns: ['string', 'sliding_window', 'hash_set']
+                    },
+                    {
+                        id: 'group-anagrams',
+                        title: 'Group Anagrams',
+                        topic: 'string',
+                        description: `Given an array of strings strs, group the anagrams together.`,
+                        solution: `def groupAnagrams(strs):
+    anagram_groups = {}
+    
+    for s in strs:
+        sorted_str = ''.join(sorted(s))
+        if sorted_str in anagram_groups:
+            anagram_groups[sorted_str].append(s)
+        else:
+            anagram_groups[sorted_str] = [s]
+    
+    return list(anagram_groups.values())`,
+                        patterns: ['string', 'hash_table', 'sorting']
+                    },
+                    {
+                        id: 'valid-parentheses-string',
+                        title: 'Valid Parentheses String',
+                        topic: 'string',
+                        description: `Given a string s containing only three types of characters: '(', ')' and '*', return true if s is valid.`,
+                        solution: `def checkValidString(s):
+    min_open = max_open = 0
+    
+    for char in s:
+        if char == '(':
+            min_open += 1
+            max_open += 1
+        elif char == ')':
+            min_open -= 1
+            max_open -= 1
+        else:  # char == '*'
+            min_open -= 1
+            max_open += 1
+        
+        if max_open < 0:
+            return False
+        
+        min_open = max(0, min_open)
+    
+    return min_open == 0`,
+                        patterns: ['string', 'greedy', 'stack']
                     }
                 ],
                 'linked-list': [
@@ -114,6 +231,91 @@ class ProblemsDatabase {
     current.next = list1 or list2
     return dummy.next`,
                         patterns: ['linked_list', 'merge']
+                    },
+                    {
+                        id: 'linked-list-cycle',
+                        title: 'Linked List Cycle',
+                        topic: 'linked-list',
+                        description: `Given head, the head of a linked list, determine if the linked list has a cycle in it.`,
+                        solution: `def hasCycle(head):
+    if not head or not head.next:
+        return False
+    
+    slow = fast = head
+    
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        
+        if slow == fast:
+            return True
+    
+    return False`,
+                        patterns: ['linked_list', 'two_pointer', 'floyd_cycle']
+                    },
+                    {
+                        id: 'remove-nth-node',
+                        title: 'Remove Nth Node From End of List',
+                        topic: 'linked-list',
+                        description: `Given the head of a linked list, remove the nth node from the end of the list and return its head.`,
+                        solution: `def removeNthFromEnd(head, n):
+    dummy = ListNode(0)
+    dummy.next = head
+    first = second = dummy
+    
+    # Move first n+1 steps ahead
+    for _ in range(n + 1):
+        first = first.next
+    
+    # Move both until first reaches end
+    while first:
+        first = first.next
+        second = second.next
+    
+    # Skip the nth node
+    second.next = second.next.next
+    
+    return dummy.next`,
+                        patterns: ['linked_list', 'two_pointer']
+                    },
+                    {
+                        id: 'reorder-list',
+                        title: 'Reorder List',
+                        topic: 'linked-list',
+                        description: `You are given the head of a singly linked-list. Reorder the list to be on the following form: L0 → Ln → L1 → Ln-1 → L2 → Ln-2 → …`,
+                        solution: `def reorderList(head):
+    if not head or not head.next:
+        return
+    
+    # Find middle
+    slow = fast = head
+    while fast.next and fast.next.next:
+        slow = slow.next
+        fast = fast.next.next
+    
+    # Reverse second half
+    prev = None
+    curr = slow.next
+    slow.next = None
+    
+    while curr:
+        next_temp = curr.next
+        curr.next = prev
+        prev = curr
+        curr = next_temp
+    
+    # Merge two halves
+    first = head
+    second = prev
+    
+    while second:
+        temp1 = first.next
+        temp2 = second.next
+        first.next = second
+        second.next = temp1
+        first = temp1
+        second = temp2`,
+                        patterns: ['linked_list', 'two_pointer', 'reverse']
                     }
                 ],
                 'stack': [
@@ -161,6 +363,73 @@ class ProblemsDatabase {
     def getMin(self):
         return self.min_stack[-1]`,
                         patterns: ['stack', 'design']
+                    },
+                    {
+                        id: 'daily-temperatures',
+                        title: 'Daily Temperatures',
+                        topic: 'stack',
+                        description: `Given an array of integers temperatures represents the daily temperatures, return an array answer such that answer[i] is the number of days you have to wait after the ith day to get a warmer temperature.`,
+                        solution: `def dailyTemperatures(temperatures):
+    n = len(temperatures)
+    result = [0] * n
+    stack = []
+    
+    for i in range(n):
+        while stack and temperatures[i] > temperatures[stack[-1]]:
+            prev_index = stack.pop()
+            result[prev_index] = i - prev_index
+        stack.append(i)
+    
+    return result`,
+                        patterns: ['stack', 'monotonic_stack', 'array']
+                    },
+                    {
+                        id: 'evaluate-rpn',
+                        title: 'Evaluate Reverse Polish Notation',
+                        topic: 'stack',
+                        description: `Evaluate the value of an arithmetic expression in Reverse Polish Notation.`,
+                        solution: `def evalRPN(tokens):
+    stack = []
+    operators = {'+', '-', '*', '/'}
+    
+    for token in tokens:
+        if token in operators:
+            b = stack.pop()
+            a = stack.pop()
+            
+            if token == '+':
+                stack.append(a + b)
+            elif token == '-':
+                stack.append(a - b)
+            elif token == '*':
+                stack.append(a * b)
+            elif token == '/':
+                stack.append(int(a / b))
+        else:
+            stack.append(int(token))
+    
+    return stack[0]`,
+                        patterns: ['stack', 'math', 'parsing']
+                    },
+                    {
+                        id: 'largest-rectangle-histogram',
+                        title: 'Largest Rectangle in Histogram',
+                        topic: 'stack',
+                        description: `Given an array of integers heights representing the histogram's bar height where the width of each bar is 1, return the area of the largest rectangle in the histogram.`,
+                        solution: `def largestRectangleArea(heights):
+    stack = []
+    max_area = 0
+    heights.append(0)  # Add sentinel
+    
+    for i, h in enumerate(heights):
+        while stack and h < heights[stack[-1]]:
+            height = heights[stack.pop()]
+            width = i if not stack else i - stack[-1] - 1
+            max_area = max(max_area, height * width)
+        stack.append(i)
+    
+    return max_area`,
+                        patterns: ['stack', 'monotonic_stack', 'area_calculation']
                     }
                 ],
                 'binary-tree': [
@@ -191,6 +460,97 @@ class ProblemsDatabase {
     
     return 1 + max(maxDepth(root.left), maxDepth(root.right))`,
                         patterns: ['binary_tree', 'recursion', 'dfs']
+                    },
+                    {
+                        id: 'same-tree',
+                        title: 'Same Tree',
+                        topic: 'binary-tree',
+                        description: `Given the roots of two binary trees p and q, write a function to check if they are the same or not.`,
+                        solution: `def isSameTree(p, q):
+    if not p and not q:
+        return True
+    
+    if not p or not q:
+        return False
+    
+    return (p.val == q.val and
+            isSameTree(p.left, q.left) and
+            isSameTree(p.right, q.right))`,
+                        patterns: ['binary_tree', 'recursion', 'dfs']
+                    },
+                    {
+                        id: 'subtree-of-another-tree',
+                        title: 'Subtree of Another Tree',
+                        topic: 'binary-tree',
+                        description: `Given the roots of two binary trees root and subRoot, return true if there is a subtree of root with the same structure and node values of subRoot.`,
+                        solution: `def isSubtree(root, subRoot):
+    if not subRoot:
+        return True
+    if not root:
+        return False
+    
+    if isSameTree(root, subRoot):
+        return True
+    
+    return isSubtree(root.left, subRoot) or isSubtree(root.right, subRoot)
+
+def isSameTree(p, q):
+    if not p and not q:
+        return True
+    if not p or not q:
+        return False
+    
+    return (p.val == q.val and
+            isSameTree(p.left, q.left) and
+            isSameTree(p.right, q.right))`,
+                        patterns: ['binary_tree', 'recursion', 'dfs']
+                    },
+                    {
+                        id: 'lowest-common-ancestor',
+                        title: 'Lowest Common Ancestor of a Binary Search Tree',
+                        topic: 'binary-tree',
+                        description: `Given a binary search tree (BST), find the lowest common ancestor (LCA) of two given nodes in the BST.`,
+                        solution: `def lowestCommonAncestor(root, p, q):
+    while root:
+        if p.val < root.val and q.val < root.val:
+            root = root.left
+        elif p.val > root.val and q.val > root.val:
+            root = root.right
+        else:
+            return root
+    
+    return None`,
+                        patterns: ['binary_tree', 'bst', 'tree_traversal']
+                    },
+                    {
+                        id: 'binary-tree-level-order',
+                        title: 'Binary Tree Level Order Traversal',
+                        topic: 'binary-tree',
+                        description: `Given the root of a binary tree, return the level order traversal of its nodes' values.`,
+                        solution: `def levelOrder(root):
+    if not root:
+        return []
+    
+    result = []
+    queue = [root]
+    
+    while queue:
+        level_size = len(queue)
+        level = []
+        
+        for _ in range(level_size):
+            node = queue.pop(0)
+            level.append(node.val)
+            
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        
+        result.append(level)
+    
+    return result`,
+                        patterns: ['binary_tree', 'bfs', 'level_order']
                     }
                 ],
                 'dynamic-programming': [
@@ -230,6 +590,61 @@ class ProblemsDatabase {
     
     return prev1`,
                         patterns: ['dynamic_programming', 'array']
+                    },
+                    {
+                        id: 'coin-change',
+                        title: 'Coin Change',
+                        topic: 'dynamic-programming',
+                        description: `You are given an integer array coins representing coins of different denominations and an integer amount representing a total amount of money. Return the fewest number of coins that you need to make up that amount.`,
+                        solution: `def coinChange(coins, amount):
+    dp = [float('inf')] * (amount + 1)
+    dp[0] = 0
+    
+    for i in range(1, amount + 1):
+        for coin in coins:
+            if coin <= i:
+                dp[i] = min(dp[i], dp[i - coin] + 1)
+    
+    return dp[amount] if dp[amount] != float('inf') else -1`,
+                        patterns: ['dynamic_programming', 'bottom_up']
+                    },
+                    {
+                        id: 'longest-increasing-subsequence',
+                        title: 'Longest Increasing Subsequence',
+                        topic: 'dynamic-programming',
+                        description: `Given an integer array nums, return the length of the longest strictly increasing subsequence.`,
+                        solution: `def lengthOfLIS(nums):
+    if not nums:
+        return 0
+    
+    dp = [1] * len(nums)
+    
+    for i in range(1, len(nums)):
+        for j in range(i):
+            if nums[j] < nums[i]:
+                dp[i] = max(dp[i], dp[j] + 1)
+    
+    return max(dp)`,
+                        patterns: ['dynamic_programming', 'array']
+                    },
+                    {
+                        id: 'word-break',
+                        title: 'Word Break',
+                        topic: 'dynamic-programming',
+                        description: `Given a string s and a dictionary of strings wordDict, return true if s can be segmented into a space-separated sequence of one or more dictionary words.`,
+                        solution: `def wordBreak(s, wordDict):
+    word_set = set(wordDict)
+    dp = [False] * (len(s) + 1)
+    dp[0] = True
+    
+    for i in range(1, len(s) + 1):
+        for j in range(i):
+            if dp[j] and s[j:i] in word_set:
+                dp[i] = True
+                break
+    
+    return dp[len(s)]`,
+                        patterns: ['dynamic_programming', 'string', 'hash_set']
                     }
                 ],
                 'graph': [
@@ -286,6 +701,75 @@ class ProblemsDatabase {
     
     return dfs(node)`,
                         patterns: ['graph', 'dfs', 'hash_table']
+                    },
+                    {
+                        id: 'course-schedule',
+                        title: 'Course Schedule',
+                        topic: 'graph',
+                        description: `There are a total of numCourses courses you have to take, labeled from 0 to numCourses - 1. You are given an array prerequisites where prerequisites[i] = [ai, bi] indicates that you must take course bi first if you want to take course ai.`,
+                        solution: `def canFinish(numCourses, prerequisites):
+    graph = [[] for _ in range(numCourses)]
+    in_degree = [0] * numCourses
+    
+    # Build graph and calculate in-degrees
+    for course, prereq in prerequisites:
+        graph[prereq].append(course)
+        in_degree[course] += 1
+    
+    # Find courses with no prerequisites
+    queue = []
+    for i in range(numCourses):
+        if in_degree[i] == 0:
+            queue.append(i)
+    
+    completed = 0
+    while queue:
+        course = queue.pop(0)
+        completed += 1
+        
+        for next_course in graph[course]:
+            in_degree[next_course] -= 1
+            if in_degree[next_course] == 0:
+                queue.append(next_course)
+    
+    return completed == numCourses`,
+                        patterns: ['graph', 'topological_sort', 'bfs']
+                    },
+                    {
+                        id: 'pacific-atlantic-water-flow',
+                        title: 'Pacific Atlantic Water Flow',
+                        topic: 'graph',
+                        description: `There is an m x n rectangular island that borders both the Pacific Ocean and Atlantic Ocean. Given an m x n integer matrix heights where heights[r][c] represents the height above sea level of the cell at coordinate (r, c).`,
+                        solution: `def pacificAtlantic(heights):
+    if not heights or not heights[0]:
+        return []
+    
+    m, n = len(heights), len(heights[0])
+    pacific = set()
+    atlantic = set()
+    
+    def dfs(r, c, visited):
+        visited.add((r, c))
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        
+        for dr, dc in directions:
+            nr, nc = r + dr, c + dc
+            if (0 <= nr < m and 0 <= nc < n and
+                (nr, nc) not in visited and
+                heights[nr][nc] >= heights[r][c]):
+                dfs(nr, nc, visited)
+    
+    # DFS from Pacific borders
+    for i in range(m):
+        dfs(i, 0, pacific)
+        dfs(i, n - 1, atlantic)
+    
+    for j in range(n):
+        dfs(0, j, pacific)
+        dfs(m - 1, j, atlantic)
+    
+    return list(pacific & atlantic)`,
+                        patterns: ['graph', 'dfs', 'matrix', 'backtracking']
                     }
                 ],
                 'backtracking': [
@@ -334,6 +818,115 @@ class ProblemsDatabase {
     backtrack([])
     return result`,
                         patterns: ['backtracking', 'recursion', 'array']
+                    },
+                    {
+                        id: 'combination-sum',
+                        title: 'Combination Sum',
+                        topic: 'backtracking',
+                        description: `Given an array of distinct integers candidates and a target integer target, return a list of all unique combinations of candidates where the chosen numbers sum to target.`,
+                        solution: `def combinationSum(candidates, target):
+    result = []
+    
+    def backtrack(start, path, remaining):
+        if remaining == 0:
+            result.append(path[:])
+            return
+        
+        if remaining < 0:
+            return
+        
+        for i in range(start, len(candidates)):
+            path.append(candidates[i])
+            backtrack(i, path, remaining - candidates[i])
+            path.pop()
+    
+    backtrack(0, [], target)
+    return result`,
+                        patterns: ['backtracking', 'recursion', 'array']
+                    },
+                    {
+                        id: 'n-queens',
+                        title: 'N-Queens',
+                        topic: 'backtracking',
+                        description: `The n-queens puzzle is the problem of placing n queens on an n×n chessboard such that no two queens attack each other.`,
+                        solution: `def solveNQueens(n):
+    result = []
+    board = ['.' * n for _ in range(n)]
+    
+    def is_safe(row, col):
+        # Check column
+        for i in range(row):
+            if board[i][col] == 'Q':
+                return False
+        
+        # Check diagonal
+        for i, j in zip(range(row-1, -1, -1), range(col-1, -1, -1)):
+            if board[i][j] == 'Q':
+                return False
+        
+        # Check anti-diagonal
+        for i, j in zip(range(row-1, -1, -1), range(col+1, n)):
+            if board[i][j] == 'Q':
+                return False
+        
+        return True
+    
+    def backtrack(row):
+        if row == n:
+            result.append(board[:])
+            return
+        
+        for col in range(n):
+            if is_safe(row, col):
+                board[row] = board[row][:col] + 'Q' + board[row][col+1:]
+                backtrack(row + 1)
+                board[row] = board[row][:col] + '.' + board[row][col+1:]
+    
+    backtrack(0)
+    return result`,
+                        patterns: ['backtracking', 'recursion', 'chess', 'constraint_satisfaction']
+                    },
+                    {
+                        id: 'word-search',
+                        title: 'Word Search',
+                        topic: 'backtracking',
+                        description: `Given an m x n grid of characters board and a string word, return true if word exists in the grid.`,
+                        solution: `def exist(board, word):
+    if not board or not word:
+        return False
+    
+    m, n = len(board), len(board[0])
+    
+    def backtrack(r, c, index):
+        if index == len(word):
+            return True
+        
+        if (r < 0 or r >= m or c < 0 or c >= n or
+            board[r][c] != word[index]):
+            return False
+        
+        # Mark as visited
+        temp = board[r][c]
+        board[r][c] = '#'
+        
+        # Explore all directions
+        found = (backtrack(r+1, c, index+1) or
+                backtrack(r-1, c, index+1) or
+                backtrack(r, c+1, index+1) or
+                backtrack(r, c-1, index+1))
+        
+        # Restore original value
+        board[r][c] = temp
+        
+        return found
+    
+    for i in range(m):
+        for j in range(n):
+            if backtrack(i, j, 0):
+                return True
+    
+    return False`,
+                        patterns: ['backtracking', 'matrix', 'dfs', 'string']
                     }
                 ]
             },

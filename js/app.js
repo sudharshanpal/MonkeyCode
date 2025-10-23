@@ -149,12 +149,19 @@ class CodeTypeApp {
     selectMode(mode) {
         if (this.gameState.isActive) return; // Don't change mode while typing
         
+        // Check if mode is changing
+        const modeChanged = this.currentMode !== mode;
+        
         this.currentMode = mode;
-        this.updateActiveButton(this.elements.modeButtons, `[data-mode="${mode}"]`);
         
-        // Show/hide topic selection for micro drills
-        this.elements.settingsBar.setAttribute('data-mode', mode);
+        // Only update button styling if mode actually changed
+        if (modeChanged) {
+            this.updateActiveButton(this.elements.modeButtons, `[data-mode="${mode}"]`);
+            // Show/hide topic selection for micro drills
+            this.elements.settingsBar.setAttribute('data-mode', mode);
+        }
         
+        // Always load new problem and save settings (allows clicking same button for new problem)
         this.loadNewProblem();
         this.saveUserSettings();
     }
@@ -163,8 +170,17 @@ class CodeTypeApp {
     selectTopic(topic) {
         if (this.gameState.isActive || this.currentMode === 'micro') return;
         
+        // Check if topic is changing
+        const topicChanged = this.currentTopic !== topic;
+        
         this.currentTopic = topic;
-        this.updateActiveButton(this.elements.topicButtons, `[data-topic="${topic}"]`);
+        
+        // Only update button styling if topic actually changed
+        if (topicChanged) {
+            this.updateActiveButton(this.elements.topicButtons, `[data-topic="${topic}"]`);
+        }
+        
+        // Always load new problem and save settings (allows clicking same button for new problem)
         this.loadNewProblem();
         this.saveUserSettings();
     }
