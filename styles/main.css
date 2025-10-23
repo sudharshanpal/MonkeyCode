@@ -241,16 +241,16 @@ body {
 .code-display-container {
     position: relative;
     width: 100%;
-    min-height: 300px;
+    height: 9rem; /* 3 lines * 3rem line-height */
     background: transparent;
     padding: 0;
-    overflow: visible;
+    overflow: hidden; /* Hide overflow to show only 3 lines */
 }
 
 .code-display-text {
     font-family: var(--font-code);
     font-size: 1.5rem;
-    line-height: 2;
+    line-height: 3rem; /* Increased for better spacing */
     color: var(--sub-color);
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -260,12 +260,13 @@ body {
     z-index: 1;
     max-width: 100%;
     overflow-wrap: break-word;
+    transition: transform 0.3s ease; /* Smooth scrolling animation */
 }
 
 .code-input {
     font-family: var(--font-code);
     font-size: 1.5rem;
-    line-height: 2;
+    line-height: 3rem; /* Match the display text line height */
     background: transparent;
     border: none;
     outline: none;
@@ -277,7 +278,7 @@ body {
     right: 0;
     bottom: 0;
     z-index: 2;
-    caret-color: transparent;
+    caret-color: transparent !important;
     width: 100%;
     height: 100%;
     padding: 0;
@@ -293,11 +294,11 @@ body {
 
 .code-input:focus {
     outline: none;
-    caret-color: transparent;
+    caret-color: transparent !important;
 }
 
 .code-input:disabled {
-    caret-color: transparent;
+    caret-color: transparent !important;
 }
 
 
@@ -314,9 +315,55 @@ body {
 }
 
 .code-display-text .current {
+    background: transparent;
+    color: var(--sub-color);
+    position: relative;
+}
+
+.code-display-text .current::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
     background: var(--main-color);
-    color: var(--bg-color);
-    border-radius: 2px;
+    animation: blink 1s infinite;
+    border-radius: 1px;
+}
+
+/* Special handling for carets placed at the very start or end of a line.
+   The default ::before positions assume there is preceding content; when
+   the caret is rendered at the start of a line (an empty span) the left
+   offset needs to be 0 so the caret is visible. Ensure these spans are
+   inline-block so the pseudo-element can size/position correctly. */
+.code-display-text .line-start-cursor,
+.code-display-text .line-end-cursor {
+    display: inline-block;
+    min-width: 0.6ch; /* give a small clickable/visible area for empty spans */
+    position: relative; /* keep pseudo-element positioned relative to the span */
+    vertical-align: top;
+}
+
+/* Place caret flush at the left edge for start-of-line cursors */
+.code-display-text .line-start-cursor::before {
+    left: 0;
+    width: 3px;
+}
+
+/* Keep default offset for end-of-line caret but ensure it aligns nicely */
+.code-display-text .line-end-cursor::before {
+    left: 0;
+    width: 3px;
+}
+
+@keyframes blink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0;
+    }
 }
 
 /* Ensure untyped text appears in subdued color */

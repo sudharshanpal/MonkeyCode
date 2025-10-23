@@ -10,6 +10,13 @@ class TypingEngine {
         this.totalKeystrokes = 0;
         this.isActive = false;
         
+        // Line management for 3-line display
+        this.lines = [];
+        this.currentLineIndex = 0;
+        this.displayStartLine = 0;
+        this.maxDisplayLines = 3;
+        this.charactersPerLine = 80; // Approximate, will be calculated dynamically
+        
         // Performance tracking
         this.keystrokeHistory = [];
         this.errorPositions = [];
@@ -68,10 +75,17 @@ class TypingEngine {
         this.totalKeystrokes = 0;
         this.isActive = false;
         
+        // Reset line management
+        this.currentLineIndex = 0;
+        this.displayStartLine = 0;
+        
         // Clear tracking arrays
         this.keystrokeHistory = [];
         this.errorPositions = [];
         this.wpmHistory = [];
+        
+        // Split text into lines for display
+        this.splitTextIntoLines();
         
         // Update display
         this.updateDisplay();
@@ -84,15 +98,54 @@ class TypingEngine {
         }
     }
     
+    // Split text into lines based on container width
+    splitTextIntoLines() {
+        if (!this.codeDisplay) return;
+        
+        // Calculate approximate characters per line based on container width
+        const containerWidth = this.codeDisplay.parentElement.clientWidth;
+        const fontSize = parseFloat(getComputedStyle(this.codeDisplay).fontSize);
+        const charWidth = fontSize * 0.6; // Approximate character width for monospace font
+        this.charactersPerLine = Math.floor(containerWidth / charWidth) - 5; // Leave some margin
+        
+        this.lines = [];
+        let currentLine = '';
+        let currentLineLength = 0;
+        
+        for (let i = 0; i < this.currentText.length; i++) {
+            const char = this.currentText[i];
+            
+            if (char === '\n' || currentLineLength >= this.charactersPerLine) {
+                // End current line
+                this.lines.push({
+                    text: currentLine,
+                    startIndex: i - currentLine.length,
+                    endIndex: i - 1
+                });
+                currentLine = char === '\n' ? '' : char;
+                currentLineLength = char === '\n' ? 0 : 1;
+            } else {
+                currentLine += char;
+                currentLineLength++;
+            }
+        }
+        
+        // Add the last line if it has content
+        if (currentLine.length > 0) {
+            this.lines.push({
+                text: currentLine,
+                startIndex: this.currentText.length - currentLine.length,
+                endIndex: this.currentText.length - 1
+            });
+        }
+    }
+    
     // Handle input events
     handleInput(event) {
         const input = event.target.value;
         
-        // Prevent input beyond expected length
-        if (input.length > this.currentText.length) {
-            event.target.value = input.substring(0, this.currentText.length);
-            return;
-        }
+        // Allow typing beyond expected length but don't count extra characters as errors
+        // We'll handle completion based on the last expected character being correct
         
         // Start timing on first keystroke
         if (!this.startTime && input.length === 1) {
@@ -131,8 +184,9 @@ class TypingEngine {
             }
         });
         
-        // Check completion
-        if (this.userInput.length === this.currentText.length) {
+        // Check completion - only complete if we have at least the expected length
+        // AND the last character of the expected text is correct
+        if (this.userInput.length >= this.currentText.length && this.isLastCharacterCorrect()) {
             this.completeSession();
         }
         
@@ -140,6 +194,20 @@ class TypingEngine {
         if (this.onProgressUpdate) {
             this.onProgressUpdate(this.getProgress());
         }
+    }
+    
+    // Check if the last character of the expected text is correct
+    isLastCharacterCorrect() {
+        if (this.currentText.length === 0) return false;
+        
+        const lastExpectedIndex = this.currentText.length - 1;
+        const lastExpectedChar = this.currentText[lastExpectedIndex];
+        
+        // Check if we have typed at least up to the last character
+        if (this.userInput.length <= lastExpectedIndex) return false;
+        
+        // Check if the last expected character matches what the user typed
+        return this.userInput[lastExpectedIndex] === lastExpectedChar;
     }
     
     // Handle paste events
@@ -238,48 +306,109 @@ class TypingEngine {
         this.errorPositions = errorPositions;
     }
     
-    // Update the visual display
+    // Update the visual display with 3-line scrolling
     updateDisplay() {
-        if (!this.codeDisplay) return;
+        if (!this.codeDisplay || this.lines.length === 0) return;
         
+        // Find current line based on user input position
+        this.updateCurrentLine();
+        
+        // Check if we need to scroll
+        this.updateScrollPosition();
+        
+        // Generate HTML for visible lines
         let displayHtml = '';
-        const textLength = this.currentText.length;
         const inputLength = this.userInput.length;
         
-        for (let i = 0; i < textLength; i++) {
-            const char = this.currentText[i];
-            let className = '';
+        // Render all lines (we'll use CSS transform to show only 3)
+        for (let lineIndex = 0; lineIndex < this.lines.length; lineIndex++) {
+            const line = this.lines[lineIndex];
+            let lineHtml = '';
             
-            if (i < inputLength) {
-                // Character has been typed
-                if (this.userInput[i] === char) {
-                    className = 'correct';
-                } else {
-                    className = 'incorrect';
+            for (let charIndex = 0; charIndex < line.text.length; charIndex++) {
+                const globalIndex = line.startIndex + charIndex;
+                const char = line.text[charIndex];
+                let className = '';
+                
+                if (globalIndex < inputLength && globalIndex < this.currentText.length) {
+                    // Character has been typed (only within expected length)
+                    if (this.userInput[globalIndex] === char) {
+                        className = 'correct';
+                    } else {
+                        className = 'incorrect';
+                    }
+                } else if (globalIndex === inputLength && globalIndex < this.currentText.length) {
+                    // Current position (within expected text)
+                    className = 'current';
                 }
-            } else if (i === inputLength) {
-                // Current position
-                className = 'current';
+                
+                // Handle special characters
+                let displayChar = char;
+                if (char === '\t') {
+                    displayChar = '    '; // Show tabs as spaces
+                } else if (char === ' ') {
+                    displayChar = '&nbsp;';
+                }
+                
+                if (className) {
+                    lineHtml += `<span class="${className}">${displayChar}</span>`;
+                } else {
+                    lineHtml += displayChar;
+                }
             }
             
-            // Handle special characters
-            let displayChar = char;
-            if (char === '\n') {
-                displayChar = '\\n<br>';
-            } else if (char === '\t') {
-                displayChar = '    '; // Show tabs as spaces
-            } else if (char === ' ') {
-                displayChar = '&nbsp;';
+            // Check if cursor should appear at the end of this line
+            const lineEndIndex = line.endIndex + 1; // Position after last character of line
+            if (lineEndIndex === inputLength && lineEndIndex < this.currentText.length) {
+                // Check what the next character should be
+                const nextChar = this.currentText[lineEndIndex];
+                if (nextChar === '\n') {
+                    // Show enter/newline cursor
+                    lineHtml += `<span class="current line-end-cursor">↵</span>`;
+                } else {
+                    // Show space cursor at end of line
+                    lineHtml += `<span class="current line-end-cursor">&nbsp;</span>`;
+                }
             }
             
-            if (className) {
-                displayHtml += `<span class="${className}">${displayChar}</span>`;
-            } else {
-                displayHtml += displayChar;
-            }
+            displayHtml += `<div class="code-line">${lineHtml}</div>`;
         }
         
         this.codeDisplay.innerHTML = displayHtml;
+        
+        // Apply scroll transform
+        const scrollOffset = this.displayStartLine * -3; // 3rem per line
+        this.codeDisplay.style.transform = `translateY(${scrollOffset}rem)`;
+    }
+    
+    // Update current line index based on user input position
+    updateCurrentLine() {
+        const inputLength = this.userInput.length;
+        
+        for (let i = 0; i < this.lines.length; i++) {
+            const line = this.lines[i];
+            if (inputLength >= line.startIndex && inputLength <= line.endIndex + 1) {
+                this.currentLineIndex = i;
+                break;
+            }
+        }
+    }
+    
+    // Update scroll position to keep current line visible
+    updateScrollPosition() {
+        // If current line is beyond the 3rd visible line, scroll down
+        if (this.currentLineIndex >= this.displayStartLine + this.maxDisplayLines) {
+            this.displayStartLine = this.currentLineIndex - this.maxDisplayLines + 1;
+        }
+        // If current line is before the first visible line, scroll up
+        else if (this.currentLineIndex < this.displayStartLine) {
+            this.displayStartLine = this.currentLineIndex;
+        }
+        
+        // Ensure we don't scroll beyond the available lines
+        const maxStartLine = Math.max(0, this.lines.length - this.maxDisplayLines);
+        this.displayStartLine = Math.min(this.displayStartLine, maxStartLine);
+        this.displayStartLine = Math.max(0, this.displayStartLine);
     }
     
     // Update performance metrics
@@ -419,6 +548,11 @@ class TypingEngine {
         this.totalKeystrokes = 0;
         this.isActive = false;
         
+        // Reset line management
+        this.lines = [];
+        this.currentLineIndex = 0;
+        this.displayStartLine = 0;
+        
         this.keystrokeHistory = [];
         this.errorPositions = [];
         this.wpmHistory = [];
@@ -431,6 +565,11 @@ class TypingEngine {
                 this.codeInput.focus();
                 this.codeInput.setSelectionRange(0, 0);
             });
+        }
+        
+        // Reset display transform
+        if (this.codeDisplay) {
+            this.codeDisplay.style.transform = 'translateY(0)';
         }
         
         this.updateDisplay();

@@ -516,6 +516,13 @@ class CodeTypeApp {
             return; // Don't process other shortcuts when modal is open
         }
         
+        // When the user is actively typing, do not handle global Tab shortcuts
+        // so the typing input can handle Tab (e.g. insert spaces). This disables
+        // the Tab+Enter new-problem shortcut only during active typing sessions.
+        if (this.gameState.isActive && event.key === 'Tab') {
+            return;
+        }
+        
         // Tab + Enter to get new problem (Monkeytype style)
         if (event.key === 'Tab') {
             event.preventDefault();
