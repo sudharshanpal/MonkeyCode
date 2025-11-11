@@ -36,3 +36,4 @@ coverage/
 # Build outputs
 dist/
 build/
+.env

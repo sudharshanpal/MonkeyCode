@@ -1099,8 +1099,10 @@ if (map.has(key)) {
     }
 }
 
-// Create global instance
-window.problemsDB = new ProblemsDatabase();
+// Create global instance (only in browser environment)
+if (typeof window !== 'undefined') {
+    window.problemsDB = new ProblemsDatabase();
+}
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {

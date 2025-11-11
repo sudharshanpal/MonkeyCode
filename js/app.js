@@ -3,7 +3,15 @@ class CodeTypeApp {
     constructor() {
         this.typingEngine = new TypingEngine();
         this.performanceTracker = new PerformanceTracker();
-        this.problemsDB = window.problemsDB;
+        this.problemsDB = window.problemsDB; // Fallback to local data
+        this.supabaseClient = window.supabaseProblemsClient; // Supabase client
+        
+        // Check if Supabase is properly initialized (has client connection)
+        this.useSupabase = !!(this.supabaseClient && this.supabaseClient.client);
+        
+        if (!this.useSupabase) {
+            console.log('📦 Using local problems database (Supabase not available)');
+        }
         
         // Current settings
         this.currentMode = 'problems'; // 'problems' or 'micro'
@@ -15,7 +23,8 @@ class CodeTypeApp {
         this.gameState = {
             isActive: false,
             isComplete: false,
-            canType: true
+            canType: true,
+            isLoading: false
         };
         
         // DOM elements
@@ -32,12 +41,37 @@ class CodeTypeApp {
     }
     
     // Initialize the application
-    init() {
+    async init() {
+        console.log('🚀 Initializing CodeType app...');
+        
         this.initializeElements();
         this.setupEventListeners();
         this.setupTypingEngine();
-        this.loadNewProblem();
+        
+        // Prefetch data from Supabase if available
+        if (this.useSupabase) {
+            console.log('🔄 Loading problems from Supabase...');
+            try {
+                const success = await this.supabaseClient.prefetchAllData(this.currentLanguage);
+                if (success) {
+                    console.log('✅ Problems loaded from database');
+                } else {
+                    console.warn('⚠️ Prefetch returned false, falling back to local');
+                    this.useSupabase = false;
+                }
+            } catch (error) {
+                console.error('❌ Error prefetching from Supabase:', error);
+                console.log('⚠️ Falling back to local data');
+                this.useSupabase = false;
+            }
+        } else {
+            console.log('📦 Using local problems data');
+        }
+        
+        console.log('🎯 Loading first problem...');
+        await this.loadNewProblem();
         this.loadUserSettings();
+        console.log('✅ App initialization complete');
     }
     
     // Initialize DOM element references
@@ -198,75 +232,146 @@ class CodeTypeApp {
         
         switch(state) {
             case 'idle':
-                // Ready to start typing
-                settingsBar.style.pointerEvents = 'auto';
-                settingsBar.style.opacity = '1';
-                resetBtn.style.pointerEvents = 'auto';
-                resetBtn.style.opacity = '1';
+                // Ready to start typing — ensure options bar is visible without changing layout
+                if (settingsBar) {
+                    // Keep element in the layout (don't change display) to avoid shifting the textbox.
+                    settingsBar.style.visibility = 'visible';
+                    settingsBar.style.opacity = '1';
+                    settingsBar.style.pointerEvents = 'auto';
+                }
+                if (resetBtn) {
+                    resetBtn.style.pointerEvents = 'auto';
+                    resetBtn.style.opacity = '1';
+                }
                 break;
                 
             case 'typing':
-                // Just started, settings still available
-                settingsBar.style.pointerEvents = 'auto';
-                settingsBar.style.opacity = '1';
-                resetBtn.style.pointerEvents = 'auto';
-                resetBtn.style.opacity = '1';
+                // Session initialized but not yet active — keep options visible
+                if (settingsBar) {
+                    settingsBar.style.visibility = 'visible';
+                    settingsBar.style.opacity = '1';
+                    settingsBar.style.pointerEvents = 'auto';
+                }
+                if (resetBtn) {
+                    resetBtn.style.pointerEvents = 'auto';
+                    resetBtn.style.opacity = '1';
+                }
                 break;
                 
             case 'active':
-                // Actively typing, disable settings but keep reset button working
-                settingsBar.style.pointerEvents = 'none';
-                settingsBar.style.opacity = '0.5';
-                resetBtn.style.pointerEvents = 'auto';
-                resetBtn.style.opacity = '1';
-                resetBtn.style.display = 'block';
-                resetBtn.disabled = false;
+                // Actively typing — hide the options bar visually but preserve its space
+                if (settingsBar) {
+                    // Use visibility + opacity so the element remains in flow and the textbox doesn't move.
+                    settingsBar.style.visibility = 'hidden';
+                    settingsBar.style.opacity = '0';
+                    settingsBar.style.pointerEvents = 'none';
+                }
+                if (resetBtn) {
+                    resetBtn.style.pointerEvents = 'auto';
+                    resetBtn.style.opacity = '1';
+                    resetBtn.style.display = 'block';
+                    resetBtn.disabled = false;
+                }
                 break;
                 
             case 'complete':
-                // Finished typing, re-enable settings
-                settingsBar.style.pointerEvents = 'auto';
-                settingsBar.style.opacity = '1';
-                resetBtn.style.pointerEvents = 'auto';
-                resetBtn.style.opacity = '1';
+                // Finished typing — show options bar again
+                if (settingsBar) {
+                    settingsBar.style.visibility = 'visible';
+                    settingsBar.style.opacity = '1';
+                    settingsBar.style.pointerEvents = 'auto';
+                }
+                if (resetBtn) {
+                    resetBtn.style.pointerEvents = 'auto';
+                    resetBtn.style.opacity = '1';
+                }
                 break;
         }
     }
     
     // Load new problem based on current settings
-    loadNewProblem() {
+    async loadNewProblem() {
+        // Prevent loading if already loading
+        if (this.gameState.isLoading) {
+            console.log('⏳ Already loading a problem...');
+            return;
+        }
+        
+        this.gameState.isLoading = true;
+        
         // Hide results modal
         this.hideResultsModal();
         
         // Show problem description again
         this.elements.problemInfo.classList.remove('hidden-while-typing');
         
-        if (this.currentMode === 'micro') {
-            this.currentProblem = this.problemsDB.getRandomMicroDrill(this.currentLanguage);
-            if (this.currentProblem) {
-                this.elements.problemTitle.textContent = this.currentProblem.title;
-                this.setupTypingSession(this.currentProblem.pattern);
+        try {
+            console.log(`📝 Loading ${this.currentMode} for topic: ${this.currentTopic}, language: ${this.currentLanguage}`);
+            console.log(`📊 Using ${this.useSupabase ? 'Supabase' : 'local'} data source`);
+            
+            if (this.currentMode === 'micro') {
+                // Get micro drill
+                if (this.useSupabase) {
+                    console.log('🔍 Fetching micro drill from Supabase...');
+                    this.currentProblem = await this.supabaseClient.getRandomMicroDrill(this.currentLanguage);
+                } else {
+                    console.log('🔍 Getting micro drill from local data...');
+                    this.currentProblem = this.problemsDB.getRandomMicroDrill(this.currentLanguage);
+                }
+                
+                if (this.currentProblem) {
+                    console.log('✅ Loaded micro drill:', this.currentProblem.title);
+                    this.elements.problemTitle.textContent = this.currentProblem.title;
+                    this.setupTypingSession(this.currentProblem.pattern);
+                } else {
+                    console.error('❌ No micro drill returned!');
+                }
+            } else {
+                // Get problem
+                if (this.useSupabase) {
+                    console.log('🔍 Fetching problem from Supabase...');
+                    this.currentProblem = await this.supabaseClient.getRandomProblemByTopic(this.currentTopic, this.currentLanguage);
+                } else {
+                    console.log('🔍 Getting problem from local data...');
+                    this.currentProblem = this.problemsDB.getRandomProblemByTopic(this.currentTopic, this.currentLanguage);
+                }
+                
+                if (this.currentProblem) {
+                    console.log('✅ Loaded problem:', this.currentProblem.title);
+                    this.elements.problemTitle.textContent = `${this.currentProblem.title} - ${this.currentTopic}`;
+                    this.setupTypingSession(this.currentProblem.solution);
+                } else {
+                    console.error('❌ No problem returned!');
+                }
             }
-        } else {
-            this.currentProblem = this.problemsDB.getRandomProblemByTopic(this.currentTopic, this.currentLanguage);
-            if (this.currentProblem) {
-                this.elements.problemTitle.textContent = `${this.currentProblem.title} - ${this.currentTopic}`;
-                this.setupTypingSession(this.currentProblem.solution);
+            
+            // Reset game state
+            this.gameState.isActive = false;
+            this.gameState.isComplete = false;
+            this.gameState.canType = true;
+            
+            // Set UI to idle state
+            this.setUIState('idle');
+            
+            // Focus input for immediate typing
+            setTimeout(() => {
+                this.elements.codeInput.focus();
+            }, 100);
+        } catch (error) {
+            console.error('❌ Error loading problem:', error);
+            console.error('Error stack:', error.stack);
+            
+            // Fallback to local data if Supabase fails
+            if (this.useSupabase) {
+                console.log('⚠️ Falling back to local problems');
+                this.useSupabase = false;
+                await this.loadNewProblem();
+            } else {
+                console.error('❌ Local fallback also failed!');
             }
+        } finally {
+            this.gameState.isLoading = false;
         }
-        
-        // Reset game state
-        this.gameState.isActive = false;
-        this.gameState.isComplete = false;
-        this.gameState.canType = true;
-        
-        // Set UI to idle state
-        this.setUIState('idle');
-        
-        // Focus input for immediate typing
-        setTimeout(() => {
-            this.elements.codeInput.focus();
-        }, 100);
     }
     
     // Setup typing session with text
